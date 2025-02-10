@@ -1,0 +1,45 @@
+# docker-compose.yml
+services:
+  # Service pour la base de données MySQL
+  mysqldb:
+    image: mysql:5.7 # Image Docker officielle MySQL version 5.7
+    restart: unless-stopped
+    env_file: ./.env # Fichier pour les variables d'environnement
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQLDB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQLDB_DATABASE}
+    ports:
+      - "${MYSQLDB_LOCAL_PORT}:${MYSQLDB_DOCKER_PORT}" # Redirection des ports MySQL
+    volumes:
+      - db:/var/lib/mysql # Volume pour persistance des données
+    healthcheck: # Vérifie si le service MySQL est prêt
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Service pour l'application Spring Boot
+  app:
+    depends_on:
+      - mysqldb # Attend que MySQL soit démarré
+    image: ouma96/backend-spring:1.0.0 # Assurez-vous que cette image existe
+    # Utiliser la section "build" si vous souhaitez construire localement :
+    # build:
+    #   context: ./path-to-spring-backend
+    restart: on-failure
+    env_file: ./.env # Fichier pour les variables d'environnement
+    ports:
+      - "${SPRING_LOCAL_PORT}:${SPRING_DOCKER_PORT}" # Redirection des ports de l'application
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.datasource.url": "jdbc:mysql://mysqldb:${MYSQLDB_DOCKER_PORT}/${MYSQLDB_DATABASE}?createDatabaseIfNotExist=true",
+        "spring.datasource.username": "root",
+        "spring.datasource.password": "${MYSQLDB_ROOT_PASSWORD}",
+        "spring.jpa.properties.hibernate.dialect": "org.hibernate.dialect.MySQLDialect",
+        "spring.jpa.hibernate.ddl-auto": "update"
+      }'
+    stdin_open: true
+    tty: true
+
+volumes:
+  db: {} # Volume pour stocker les données MySQL de manière persistante
