@@ -24,7 +24,7 @@ public class EventRestController {
     public Event addEventPart(@RequestBody Event event, @PathVariable("id") int idPart){
         return eventServices.addAffectEvenParticipant(event, idPart);
     }
-    @PostMapping("/addEvent")
+    @PostMapping("/addEvents")
     public Event addEvent(@RequestBody Event event){
         return eventServices.addAffectEvenParticipant(event);
     }
