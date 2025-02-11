@@ -12,11 +12,12 @@ services:
       - "${MYSQLDB_LOCAL_PORT}:${MYSQLDB_DOCKER_PORT}" # Redirection des ports MySQL
     volumes:
       - db:/var/lib/mysql # Volume pour persistance des données
-    healthcheck: # Vérifie si le service MySQL est prêt
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
       timeout: 5s
       retries: 3
+
 
   # Service pour l'application Spring Boot
   app:
